@@ -2,7 +2,8 @@ import os
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-LLM_MODEL = "llama3"
+# Default to llama3; allow override via env. Keep a widely available model to avoid 404s.
+LLM_MODEL = os.environ.get("LLM_MODEL", "llama3")
 EMBED_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
 
 VECTOR_DB_PATH = os.path.join(BASE_DIR, "vectorstore")

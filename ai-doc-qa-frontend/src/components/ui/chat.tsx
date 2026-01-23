@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Input } from "./input";
 import { Button } from "./button";
 import { ScrollArea } from "./scroll-area";
@@ -12,6 +12,16 @@ export default function Chat() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const viewportRef = useRef<HTMLDivElement | null>(null);
+
+  // Keep scroll pinned to the most recent message or typing indicator
+  useEffect(() => {
+    const viewport = viewportRef.current;
+    if (!viewport) return;
+    viewport.scrollTo({ top: viewport.scrollHeight, behavior: "smooth" });
+  }, [messages, loading]);
+
+  const hasMessages = useMemo(() => messages.length > 0, [messages]);
 
   const ask = async () => {
     if (!input.trim() || loading) return;
@@ -56,20 +66,42 @@ export default function Chat() {
 
   return (
     <div className="flex flex-col w-full border rounded-lg bg-background">
-      <ScrollArea className="flex-1 p-4">
+      <ScrollArea className="flex-1 p-4" viewportRef={viewportRef}>
         <div className="space-y-3">
+          {!hasMessages && !loading && (
+            <div className="text-sm text-muted-foreground text-left">
+              Ask a question about your uploaded documents to get started.
+            </div>
+          )}
+
           {messages.map((m, i) => (
             <div
               key={i}
-              className={`p-3 rounded-lg max-w-xl ${
+              className={`group relative p-3 rounded-lg max-w-xl ${
                 m.role === "user"
                   ? "bg-primary text-primary-foreground ml-auto"
                   : "bg-muted"
               }`}
             >
-              {m.content}
+              <div className="whitespace-pre-wrap text-left">{m.content}</div>
+
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute -right-10 top-2 opacity-0 transition-opacity group-hover:opacity-100"
+                onClick={() => navigator.clipboard.writeText(m.content)}
+                title="Copy message"
+              >
+                Copy
+              </Button>
             </div>
           ))}
+
+          {loading && (
+            <div className="p-3 rounded-lg max-w-xl bg-muted animate-pulse text-muted-foreground">
+              Assistant is thinking...
+            </div>
+          )}
         </div>
       </ScrollArea>
 
@@ -79,9 +111,18 @@ export default function Chat() {
           onChange={(e) => setInput(e.target.value)}
           placeholder="Ask about your document..."
           onKeyDown={(e) => e.key === "Enter" && ask()}
+          className="border-2 border-muted-foreground/50 focus-visible:ring-2"
+          disabled={loading}
         />
         <Button onClick={ask} disabled={loading}>
           {loading ? "Thinking..." : "Send"}
+        </Button>
+        <Button
+          variant="secondary"
+          onClick={() => setMessages([])}
+          disabled={loading || !hasMessages}
+        >
+          New chat
         </Button>
       </div>
     </div>

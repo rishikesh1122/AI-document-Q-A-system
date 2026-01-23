@@ -22,11 +22,10 @@ def get_answer(question: str):
     llm = _get_llm()
     index = _get_index()
 
+    # Trim retrieval depth and skip MMR reranking to speed up responses
     query_engine = index.as_query_engine(
         llm=llm,
-        similarity_top_k=8,
-        vector_store_query_mode="mmr",
-        vector_store_query_kwargs={"mmr_threshold": 0.4},
+        similarity_top_k=4,
     )
     response = query_engine.query(question)
 
