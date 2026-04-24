@@ -3,7 +3,7 @@ from fastapi import FastAPI, UploadFile, File, Response, HTTPException
 from fastapi.responses import RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
 from app.ingest import ingest_documents
-from app.qa import get_answer
+from app.qa import get_answer, LLMUnavailableError
 from app.config import UPLOAD_DIR
 
 app = FastAPI(title="AI Document Q&A")
@@ -39,5 +39,7 @@ async def upload_file(file: UploadFile = File(...)):
 async def ask(q: str):
     try:
         return {"answer": get_answer(q)}
+    except LLMUnavailableError as exc:
+        raise HTTPException(status_code=503, detail=str(exc))
     except Exception as exc:  # surface backend errors to client
         raise HTTPException(status_code=500, detail=str(exc))

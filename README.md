@@ -58,6 +58,8 @@ npm run dev
 
 ## Notes & Troubleshooting
 - Ensure Ollama is running and `llama3` is available: `ollama list` then `ollama run llama3` (first run downloads weights).
+- Start backend from `ai-doc-qa-backend/` with `uvicorn app.main:app --reload --port 8000` (not `uvicorn main:app ...`).
+- If `/ask` returns "llama runner process has terminated", restart Ollama and retry. If it persists, use a smaller model (for example `llama3.2:1b`) or free RAM, then set `LLM_MODEL` accordingly.
 - If answers say the vector store is missing, upload a document to trigger ingestion.
 - If embeddings fail due to model download, check internet/connectivity or pre-download the Hugging Face model cache.
 - For production, add auth, input validation, rate limiting, and persistence hardening.
